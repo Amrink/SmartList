@@ -1,21 +1,155 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>SmartList Dashboard</title>
+  <title>SmartList - Restaurant Picker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; margin-bottom: 20px; }
+    .restaurant-card { 
+        border: 1px solid #ccc; 
+        padding: 10px; 
+        margin: 10px 0; 
+        border-radius: 5px; 
+    }
+    .logout { float: right; margin-bottom: 20px; }
+    form { margin-bottom: 20px; }
+    .filters { 
+        display: flex; 
+        gap: 20px; 
+        align-items: flex-start; 
+        margin-bottom: 10px; 
+        flex-wrap: wrap;
+    }
+    .filter-section { display: flex; flex-direction: column; min-width: 150px; position: relative; }
+    label { font-weight: bold; margin-bottom: 5px; }
+    button { padding: 8px 16px; margin-top: 20px; }
+
+    /* Multi-select dropdown */
+    .multi-select { border: 1px solid #ccc; border-radius: 5px; padding: 5px; cursor: pointer; min-width: 150px; }
+    .dropdown-options { 
+        border: 1px solid #ccc; 
+        border-radius: 5px; 
+        position: absolute; 
+        background: white; 
+        top: 60px; 
+        left: 0; 
+        width: 100%; 
+        max-height: 150px; 
+        overflow-y: auto; 
+        display: none; 
+        z-index: 1000;
+    }
+    .dropdown-options label { display: block; padding: 5px; cursor: pointer; }
+    .selected-cuisines { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+    .selected-cuisine { 
+        display: inline-flex; 
+        align-items: center; 
+        background-color: #e0e0e0; 
+        border-radius: 3px; 
+        padding: 2px 5px; 
+        font-size: 0.9em;
+    }
+    .selected-cuisine span { cursor: pointer; margin-left: 5px; font-weight: bold; }
+  </style>
 </head>
 <body>
-    <h1>Welcome, {{ user.username }}!</h1>
 
-    <!-- Logout form (POST request required for Django 5.1) -->
-    <form action="{% url 'logout' %}" method="post" style="display:inline;">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
+  <div class="logout">
+    <a href="{% url 'logout' %}">Logout</a>
+  </div>
 
-    <hr>
+  <h1>Find a Restaurant</h1>
 
-    <h2>Your SmartList Dashboard</h2>
-    <p>Here is where your tasks will appear once you add them.</p>
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="filters">
+
+      <!-- Cuisine multi-select dropdown -->
+      <div class="filter-section">
+        <label>Cuisine</label>
+        <div class="selected-cuisines" id="selected-cuisines"></div>
+        <div class="multi-select" id="cuisine-dropdown">Select cuisines ▼</div>
+        <div class="dropdown-options" id="cuisine-options">
+          {% for value, label in form.cuisine.field.choices %}
+            <label><input type="checkbox" value="{{ value }}" {% if value in form.cuisine.value %}checked{% endif %}> {{ label }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Price dropdown -->
+      <div class="filter-section">
+        <label for="price_range">{{ form.price_range.label }}</label>
+        {{ form.price_range }}
+      </div>
+
+      <!-- Radius dropdown -->
+      <div class="filter-section">
+        <label for="radius">{{ form.radius.label }}</label>
+        {{ form.radius }}
+      </div>
+
+    </div>
+
+    <button type="submit">Generate Restaurants</button>
+  </form>
+
+  {% if restaurants %}
+  <h2>Top 3 Restaurant Suggestions</h2>
+  {% for r in restaurants %}
+    <div class="restaurant-card">
+      <h3>{{ r.name }}</h3>
+      <p>Cuisine: {{ r.cuisine|title }}</p>
+      <p>Rating: {{ r.rating }}</p>
+      <p>Distance: {{ r.distance }} miles</p>
+      <p>Price: {{ r.price }}</p>
+    </div>
+  {% endfor %}
+{% endif %}
+
+
+  <script>
+    const dropdown = document.getElementById("cuisine-dropdown");
+    const options = document.getElementById("cuisine-options");
+    const selectedContainer = document.getElementById("selected-cuisines");
+    const checkboxes = options.querySelectorAll("input[type=checkbox]");
+
+    function updateSelectedCuisines() {
+      selectedContainer.innerHTML = "";
+      checkboxes.forEach(cb => {
+        if(cb.checked) {
+          const tag = document.createElement("div");
+          tag.className = "selected-cuisine";
+          tag.textContent = cb.parentElement.textContent.trim();
+          const remove = document.createElement("span");
+          remove.textContent = "x";
+          remove.onclick = () => {
+            cb.checked = false;
+            updateSelectedCuisines();
+          };
+          tag.appendChild(remove);
+          selectedContainer.appendChild(tag);
+        }
+      });
+    }
+
+    dropdown.addEventListener("click", () => {
+      options.style.display = options.style.display === "block" ? "none" : "block";
+    });
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener("change", updateSelectedCuisines);
+    });
+
+    document.addEventListener("click", e => {
+      if(!dropdown.contains(e.target) && !options.contains(e.target)) {
+        options.style.display = "none";
+      }
+    });
+
+    // Initialize pre-selected options
+    updateSelectedCuisines();
+  </script>
+
 </body>
 </html>
