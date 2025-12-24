@@ -14,46 +14,43 @@ RESTAURANTS = [
     {"name": "Dragon Express", "cuisine": "chinese", "price": "$$", "rating": 4.6, "distance": 4.0},
 ]
 
+PRICE_MAP = {"1": "$", "2": "$$", "3": "$$$", "4": "$$$$"}
+
 @login_required
 def home(request):
     results = None
     top_restaurants = None
+    form = RestaurantFilterForm(request.POST or None)
 
-    if request.method == "POST":
-        form = RestaurantFilterForm(request.POST)
-        if form.is_valid():
-            results = form.cleaned_data
+    if request.method == "POST" and form.is_valid():
+        results = form.cleaned_data
+        filtered = RESTAURANTS
 
-            # Filter restaurants based on selected filters
-            filtered = RESTAURANTS
+        # Cuisine filter (multiple)
+        cuisines = results.get("cuisine") or []
+        if cuisines:
+            filtered = [r for r in filtered if r["cuisine"] in cuisines]
 
-            # Cuisine filter (multiple)
-            cuisines = results.get("cuisine")
-            if cuisines:
-                filtered = [r for r in filtered if r["cuisine"] in cuisines]
+        # Price range filter (form gives "1"-"4"; data uses "$" strings)
+        price = results.get("price_range") or ""
+        if price:
+            desired = PRICE_MAP.get(price)
+            filtered = [r for r in filtered if r["price"] == desired]
 
-            # Price range filter
-            price = results.get("price_range")
-            if price:
-                filtered = [r for r in filtered if r["price"] == price]
+        # Radius filter (miles)
+        radius = results.get("radius")
+        if radius:
+            filtered = [r for r in filtered if r["distance"] <= float(radius)]
 
-            # Radius filter
-            radius = results.get("radius")
-            if radius:
-                filtered = [r for r in filtered if r["distance"] <= float(radius)]
-
-            # Sort by rating descending and take top 3
-            top_restaurants = sorted(filtered, key=lambda x: x["rating"], reverse=True)[:3]
-
-    else:
-        form = RestaurantFilterForm()
+        # Sort by rating descending and take top 3
+        top_restaurants = sorted(filtered, key=lambda x: x["rating"], reverse=True)[:3]
 
     return render(request, "home.html", {"form": form, "results": results, "restaurants": top_restaurants})
 
 
-
 class CustomLoginView(LoginView):
     template_name = "login.html"
+
 
 def signup(request):
     if request.method == "POST":

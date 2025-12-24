@@ -72,7 +72,11 @@
         <div class="multi-select" id="cuisine-dropdown">Select cuisines ▼</div>
         <div class="dropdown-options" id="cuisine-options">
           {% for value, label in form.cuisine.field.choices %}
-            <label><input type="checkbox" value="{{ value }}" {% if value in form.cuisine.value %}checked{% endif %}> {{ label }}</label>
+            <label>
+            <input type="checkbox" name="cuisine" value="{{ value }}"
+                {% if value in form.cuisine.value %}checked{% endif %}>
+            {{ label }}
+            </label>
           {% endfor %}
         </div>
       </div>
