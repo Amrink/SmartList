@@ -4,6 +4,7 @@
   {{ form.as_p }}
   <button type="submit">Sign Up</button>
 </form>
+
 {% if form.errors %}
   <ul>
   {% for field in form %}
@@ -17,4 +18,5 @@
   </ul>
 {% endif %}
 
-<p>Already have an account? <a href="/login/">Login here</a></p>
+<!-- Link back to login using URL name -->
+<p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
