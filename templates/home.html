@@ -5,19 +5,19 @@
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     h1 { color: #333; margin-bottom: 20px; }
-    .restaurant-card { 
-        border: 1px solid #ccc; 
-        padding: 10px; 
-        margin: 10px 0; 
-        border-radius: 5px; 
+    .restaurant-card {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
     }
     .logout { float: right; margin-bottom: 20px; }
     form { margin-bottom: 20px; }
-    .filters { 
-        display: flex; 
-        gap: 20px; 
-        align-items: flex-start; 
-        margin-bottom: 10px; 
+    .filters {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        margin-bottom: 10px;
         flex-wrap: wrap;
     }
     .filter-section { display: flex; flex-direction: column; min-width: 150px; position: relative; }
@@ -26,27 +26,27 @@
 
     /* Multi-select dropdown */
     .multi-select { border: 1px solid #ccc; border-radius: 5px; padding: 5px; cursor: pointer; min-width: 150px; }
-    .dropdown-options { 
-        border: 1px solid #ccc; 
-        border-radius: 5px; 
-        position: absolute; 
-        background: white; 
-        top: 60px; 
-        left: 0; 
-        width: 100%; 
-        max-height: 150px; 
-        overflow-y: auto; 
-        display: none; 
+    .dropdown-options {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        position: absolute;
+        background: white;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        max-height: 150px;
+        overflow-y: auto;
+        display: none;
         z-index: 1000;
     }
     .dropdown-options label { display: block; padding: 5px; cursor: pointer; }
     .selected-cuisines { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
-    .selected-cuisine { 
-        display: inline-flex; 
-        align-items: center; 
-        background-color: #e0e0e0; 
-        border-radius: 3px; 
-        padding: 2px 5px; 
+    .selected-cuisine {
+        display: inline-flex;
+        align-items: center;
+        background-color: #e0e0e0;
+        border-radius: 3px;
+        padding: 2px 5px;
         font-size: 0.9em;
     }
     .selected-cuisine span { cursor: pointer; margin-left: 5px; font-weight: bold; }
@@ -55,14 +55,18 @@
 <body>
 
   <div class="logout">
-    <a href="{% url 'logout' %}">Logout</a>
+    <!-- Logout should be POST (Django 5+) -->
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit">Logout</button>
+    </form>
   </div>
 
   <h1>Find a Restaurant</h1>
 
   <form method="post">
     {% csrf_token %}
-    
+
     <div class="filters">
 
       <!-- Cuisine multi-select dropdown -->
@@ -73,9 +77,9 @@
         <div class="dropdown-options" id="cuisine-options">
           {% for value, label in form.cuisine.field.choices %}
             <label>
-            <input type="checkbox" name="cuisine" value="{{ value }}"
+              <input type="checkbox" name="cuisine" value="{{ value }}"
                 {% if value in form.cuisine.value %}checked{% endif %}>
-            {{ label }}
+              {{ label }}
             </label>
           {% endfor %}
         </div>
@@ -99,18 +103,17 @@
   </form>
 
   {% if restaurants %}
-  <h2>Top 3 Restaurant Suggestions</h2>
-  {% for r in restaurants %}
-    <div class="restaurant-card">
-      <h3>{{ r.name }}</h3>
-      <p>Cuisine: {{ r.cuisine|title }}</p>
-      <p>Rating: {{ r.rating }}</p>
-      <p>Distance: {{ r.distance }} miles</p>
-      <p>Price: {{ r.price }}</p>
-    </div>
-  {% endfor %}
-{% endif %}
-
+    <h2>Top 3 Restaurant Suggestions</h2>
+    {% for r in restaurants %}
+      <div class="restaurant-card">
+        <h3>{{ r.name }}</h3>
+        <p>Cuisine: {{ r.cuisine|title }}</p>
+        <p>Rating: {{ r.rating }}</p>
+        <p>Distance: {{ r.distance }} miles</p>
+        <p>Price: {{ r.price }}</p>
+      </div>
+    {% endfor %}
+  {% endif %}
 
   <script>
     const dropdown = document.getElementById("cuisine-dropdown");
@@ -121,7 +124,7 @@
     function updateSelectedCuisines() {
       selectedContainer.innerHTML = "";
       checkboxes.forEach(cb => {
-        if(cb.checked) {
+        if (cb.checked) {
           const tag = document.createElement("div");
           tag.className = "selected-cuisine";
           tag.textContent = cb.parentElement.textContent.trim();
@@ -146,7 +149,7 @@
     });
 
     document.addEventListener("click", e => {
-      if(!dropdown.contains(e.target) && !options.contains(e.target)) {
+      if (!dropdown.contains(e.target) && !options.contains(e.target)) {
         options.style.display = "none";
       }
     });
