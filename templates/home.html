@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartList Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ user.username }}!</h1>
+
+    <!-- Logout form (POST request required for Django 5.1) -->
+    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+
+    <hr>
+
+    <h2>Your SmartList Dashboard</h2>
+    <p>Here is where your tasks will appear once you add them.</p>
+
+    <!-- Optional: links for testing -->
+    <p>
+        <a href="{% url 'login' %}">Login Page</a> |
+        <a href="{% url 'signup' %}">Sign Up</a>
+    </p>
+</body>
+</html>
